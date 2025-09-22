@@ -1,0 +1,126 @@
+
+
+
+
+
+
+
+
+
+
+
+
+Parte 1
+CP01 – Agregar un producto al carrito
+Scenario: Agregar un producto disponible al carrito
+  Given que el usuario ha iniciado sesión
+  And visualiza un producto con stock disponible
+  When selecciona "Agregar al carrito"
+  Then el producto debe aparecer en el carrito con cantidad = 1
+  And el precio total debe calcularse correctamente
+
+CP02 – Modificar cantidad en el carrito
+Scenario: Modificar cantidad en el carrito
+  Given que el usuario tiene un producto en el carrito
+  When actualiza la cantidad a "3"
+  Then el carrito debe recalcular el subtotal y total de acuerdo a la cantidad
+  
+CP03 – Eliminar producto del carrito
+Scenario: Eliminar producto del carrito
+  Given que el usuario tiene productos en el carrito
+  When elimina uno de los productos
+  Then este ya no debe aparecer en el carrito
+  And el total debe recalcularse correctamente
+
+CP04 – Validar stock insuficiente
+Scenario: Intentar comprar más productos de los disponibles en stock
+  Given que un producto tiene 1 unidad en stock
+  When el usuario intenta agregar 2 unidades
+  Then el sistema debe mostrar "Stock insuficiente"
+  And no permitir continuar
+
+CP05 – Aplicar cupón válido
+Scenario Outline: Aplicar cupón válido
+  Given que el usuario tiene productos en el carrito
+  When aplica el cupón "<codigo>"
+  Then el descuento "<descuento>" debe reflejarse en el total
+  And el mensaje "Cupón aplicado exitosamente" debe mostrarse
+
+  Examples:
+    | codigo | descuento |
+    | BNF10  | 10%       |
+    | BNF50  | 50%       |
+
+CP06 – Aplicar cupón inválido
+Scenario: Aplicar cupón inválido
+  Given que el usuario tiene productos en el carrito
+  When aplica el cupón "FAKE123"
+  Then el sistema debe mostrar "Cupón inválido o expirado"
+  And el total no debe modificarse
+
+CP07 – Pago con tarjeta Visa válida
+Scenario: Pago con tarjeta Visa válida
+  Given que el usuario tiene productos en el carrito
+  And elige pagar con tarjeta Visa válida
+  When ingresa datos correctos
+  And confirma el pago
+  Then la transacción debe aprobarse
+  And se debe mostrar pantalla de confirmación
+  And el usuario recibe correo de confirmación
+
+CP08 – Pago con tarjeta inválida
+Scenario: Pago con tarjeta inválida
+  Given que el usuario selecciona pagar con tarjeta
+  When ingresa datos incorrectos
+  Then el sistema debe rechazar la transacción
+  And mostrar "Tarjeta no válida"
+
+CP09 – Pago con Millas Benefit suficientes
+Scenario: Pago con Millas Benefit suficientes
+  Given que el usuario tiene suficientes millas Benefit acumuladas
+  When selecciona pagar con millas
+  Then el pago debe completarse exitosamente
+  And se muestre pantalla de confirmación
+
+CP10 – Pago combinado: Millas + Tarjeta
+Scenario: Pago combinado con Millas y Tarjeta
+  Given que el usuario tiene millas pero no suficientes para cubrir el total
+  When selecciona pagar con millas + tarjeta
+  And completa los datos de tarjeta válidos
+  Then el sistema debe descontar las millas disponibles
+  And cargar el resto a la tarjeta
+  And completar la compra exitosamente
+
+CP11 – Confirmación de compra vía correo
+Scenario: Confirmación de compra vía correo
+  Given que el usuario completa una compra
+  Then debe recibir un correo de confirmación con detalle de productos, monto y método de pago
+
+CP12 – Visualizar historial de pedidos
+Scenario: Visualizar historial de pedidos
+  Given que el usuario ha realizado compras previas
+  When accede a "Mis pedidos"
+  Then debe visualizar una lista de compras realizadas
+  And poder consultar el detalle de cada pedido
+
+
+Parte 4 
+Configuración de Prueba
+Herramienta:JMeter
+Thread Group: 100 usuarios virtuales concurrentes
+Ramp-up: 10 segundos
+Duración total de la prueba: 1 minuto
+
+| Métrica                      | Valor                |
+| ---------------------------- | -------------------- |
+| Peticiones totales enviadas  | 5,800                |
+| Peticiones exitosas          | 5,793                |
+| Peticiones fallidas          | 7                    |
+| Tasa de error (%)            | 0.12%                |
+| Tiempo promedio de respuesta | 250 ms               |
+| Tiempo máximo de respuesta   | 2,100 ms (2.1 s)     |
+| Throughput                   |  ~96 req/s           |
+
+La API respondió de manera estable hasta los 100 usuarios concurrentes durante 1 minuto.
+Se observaron picos aislados de 2.1 segundos en algunas peticiones, probablemente por saturación momentánea.
+La tasa de error fue mínima (0.12%), no impactando significativamente la prueba.
